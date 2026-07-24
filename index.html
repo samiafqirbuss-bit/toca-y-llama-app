@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toca y Llama</title>
+<link rel="icon" type="image/png" href="favicon-32x32.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1E1B16">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
+  body{
+    font-family:'Poppins', sans-serif;
+    background: radial-gradient(circle at 50% 0%, #2A2419, #1E1B16 65%);
+    color:#FFFDF9;
+    height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:18px; padding:32px;
+  }
+  img{ width:96px; height:96px; border-radius:24px; box-shadow:0 12px 32px rgba(224,122,63,0.35); }
+  h1{ font-size:1.3rem; font-weight:600; }
+  p{ opacity:0.65; max-width:340px; line-height:1.5; font-size:0.95rem; }
+  #btnInstalar{
+    display:none;
+    background: linear-gradient(135deg, #E07A3F, #A83828);
+    color:#fff; border:none; border-radius:50px;
+    padding:13px 30px; font-weight:600; font-size:0.9rem;
+    font-family:inherit; cursor:pointer; margin-top:6px;
+    box-shadow: 0 8px 24px rgba(224,122,63,0.35);
+  }
+  #cajaSugerencias{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%); width: calc(100% - 32px); max-width: 420px; }
+  #botonSugerencia{
+    background: rgba(255,255,255,0.06); backdrop-filter: blur(6px);
+    border:1px solid rgba(255,255,255,0.15); color:#FFFDF9; opacity:0.85;
+    font-family:inherit; font-size:0.82rem; padding:9px 16px; border-radius:20px; cursor:pointer;
+  }
+  #panelSugerencia{
+    display:none; background:#FFFDF9; color:#2a2420;
+    border-radius:18px; padding:18px; margin-top:10px; text-align:left;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  }
+  #panelSugerencia textarea{
+    width:100%; border:1px solid #e6ded4; border-radius:12px;
+    padding:12px; font-family:inherit; font-size:0.9rem; resize:none; outline:none;
+  }
+  #panelSugerencia button{
+    margin-top:10px; background:#E07A3F; color:#fff; border:none;
+    padding:11px 20px; border-radius:20px; font-weight:600; font-family:inherit; cursor:pointer;
+  }
+  #graciasSugerencia{ display:none; color:#A83828; font-weight:600; font-size:0.9rem; margin-top:10px; }
+</style>
+</head>
+<body>
+  <img src="logo-icono.png" alt="Toca y Llama">
+  <h1>Toca y Llama</h1>
+  <p>Esta página funciona junto a tu marco NFC — toca la foto de tu Toca y Llama para llamar automáticamente.</p>
+  <a href="cuenta.html" style="color:#E07A3F; font-weight:600; text-decoration:none; font-size:0.9rem; margin-top:4px;">Área de clientes — cambiar mi número →</a>
+  <button id="btnInstalar">📲 Instalar app</button>
+
+  <div id="cajaSugerencias">
+    <button id="botonSugerencia">💬 ¿Algo que mejorar?</button>
+    <div id="panelSugerencia">
+      <textarea id="textoSugerencia" rows="3" placeholder="Cuéntanos qué mejorarías o qué falla…"></textarea>
+      <button id="enviarSugerencia">Enviar</button>
+      <div id="graciasSugerencia">¡Gracias por tu sugerencia! 🙏</div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Service Worker (necesario para poder instalar la app) ----------
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+
+    // ---------- Botón de instalar ----------
+    let eventoInstalar = null;
+    const btnInstalar = document.getElementById('btnInstalar');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      eventoInstalar = e;
+      btnInstalar.style.display = 'inline-block';
+    });
+    btnInstalar.addEventListener('click', async () => {
+      if (!eventoInstalar) return;
+      eventoInstalar.prompt();
+      await eventoInstalar.userChoice;
+      eventoInstalar = null;
+      btnInstalar.style.display = 'none';
+    });
+    window.addEventListener('appinstalled', () => {
+      btnInstalar.style.display = 'none';
+    });
+
+    // ---------- Caja de sugerencias ----------
+    const URL_SUGERENCIAS = "https://script.google.com/macros/s/AKfycbwz7e6ro4ygo9X_5gIYs97k280_pnhB3AR7x1UJLFNMEsBFWGpB6VYqfV6T7qxGDZnn/exec";
+    const botonSugerencia = document.getElementById('botonSugerencia');
+    const panelSugerencia = document.getElementById('panelSugerencia');
+    const enviarSugerencia = document.getElementById('enviarSugerencia');
+    const textoSugerencia = document.getElementById('textoSugerencia');
+    const graciasSugerencia = document.getElementById('graciasSugerencia');
+
+    botonSugerencia.addEventListener('click', () => {
+      panelSugerencia.style.display = panelSugerencia.style.display === 'block' ? 'none' : 'block';
+    });
+
+    enviarSugerencia.addEventListener('click', async () => {
+      const texto = textoSugerencia.value.trim();
+      if (!texto) return;
+      enviarSugerencia.disabled = true;
+      enviarSugerencia.textContent = 'Enviando…';
+      try {
+        await fetch(URL_SUGERENCIAS, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ sugerencia: texto, fecha: new Date().toISOString() })
+        });
+      } catch(err) { console.error('Error al enviar sugerencia:', err); }
+      textoSugerencia.style.display = 'none';
+      enviarSugerencia.style.display = 'none';
+      graciasSugerencia.style.display = 'block';
+    });
+  </script>
+</body>
+</html>

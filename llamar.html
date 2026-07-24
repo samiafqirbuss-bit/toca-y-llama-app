@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toca y Llama</title>
+<link rel="icon" type="image/png" href="favicon-32x32.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1E1B16">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --naranja: #E07A3F;
+    --ascua: #A83828;
+    --fondo: #1E1B16;
+    --fondo2: #2A2419;
+    --blanco: #FFFDF9;
+  }
+  *{ box-sizing: border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
+  html, body{ height:100%; }
+  body{
+    font-family: 'Poppins', -apple-system, sans-serif;
+    background: radial-gradient(circle at 50% 0%, var(--fondo2), var(--fondo) 65%);
+    color: var(--blanco);
+    min-height: 100vh;
+    display:flex; align-items:center; justify-content:center;
+    text-align:center;
+    overflow:hidden;
+  }
+
+  /* ---------- SPLASH ---------- */
+  #splash{
+    position:fixed; inset:0;
+    background: radial-gradient(circle at 50% 40%, var(--fondo2), var(--fondo) 70%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:22px;
+    z-index:10;
+    animation: splashOut 0.6s cubic-bezier(.4,0,.2,1) forwards;
+    animation-delay: 1s;
+  }
+  #splash img{
+    width:104px; height:104px;
+    border-radius: 26px;
+    box-shadow: 0 12px 32px rgba(224,122,63,0.35);
+    animation: entrada 0.7s cubic-bezier(.34,1.56,.64,1) both, pulso 1.8s ease 0.7s infinite;
+  }
+  #splash .marca{
+    font-size:1.3rem; font-weight:600; letter-spacing:0.3px;
+    color: var(--blanco);
+    opacity:0;
+    animation: fadeUp 0.6s ease 0.25s forwards;
+  }
+  @keyframes entrada{
+    from{ opacity:0; transform: scale(0.6); }
+    to{ opacity:1; transform: scale(1); }
+  }
+  @keyframes pulso{
+    0%,100%{ transform: scale(1); }
+    50%{ transform: scale(1.05); }
+  }
+  @keyframes fadeUp{
+    from{ opacity:0; transform: translateY(8px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  @keyframes splashOut{
+    to{ opacity:0; visibility:hidden; }
+  }
+
+  /* ---------- CONTENIDO ---------- */
+  #contenido{
+    padding: 40px 32px; max-width: 420px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .icono-estado{
+    width:72px; height:72px; margin: 0 auto 20px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:2rem;
+    background: rgba(224,122,63,0.14);
+    border-radius: 50%;
+  }
+  h1{ font-size:1.35rem; font-weight:600; margin-bottom:10px; letter-spacing:0.2px; }
+  p{ opacity:0.65; font-size:0.95rem; line-height:1.55; }
+  .nombre-persona{ color: var(--naranja); font-weight:600; }
+
+  .btn-llamar{
+    display:inline-block; margin-top:28px;
+    background: linear-gradient(135deg, var(--naranja), var(--ascua));
+    color:#fff;
+    font-weight:600; font-size:1.05rem;
+    padding:16px 38px; border-radius:50px;
+    text-decoration:none; border:none; cursor:pointer;
+    box-shadow: 0 8px 24px rgba(224,122,63,0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .btn-llamar:active{ transform: scale(0.96); }
+
+  .spinner{
+    width:28px; height:28px; margin: 0 auto;
+    border: 3px solid rgba(224,122,63,0.25);
+    border-top-color: var(--naranja);
+    border-radius:50%;
+    animation: girar 0.8s linear infinite;
+  }
+  @keyframes girar{ to{ transform: rotate(360deg); } }
+
+  /* ---------- SUGERENCIAS ---------- */
+  #cajaSugerencias{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    width: calc(100% - 32px); max-width: 420px;
+    z-index:5;
+  }
+  #botonSugerencia{
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(6px);
+    border:1px solid rgba(255,255,255,0.15);
+    color: var(--blanco); opacity:0.85;
+    font-family:inherit;
+    font-size:0.82rem; padding:9px 16px; border-radius:20px;
+    cursor:pointer;
+    transition: opacity 0.2s ease, background 0.2s ease;
+  }
+  #botonSugerencia:hover{ opacity:1; background: rgba(255,255,255,0.1); }
+  #panelSugerencia{
+    display:none;
+    background: var(--blanco); color:#2a2420;
+    border-radius:18px; padding:18px; margin-top:10px;
+    text-align:left;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+    animation: fadeUp 0.25s ease both;
+  }
+  #panelSugerencia textarea{
+    width:100%; border:1px solid #e6ded4; border-radius:12px;
+    padding:12px; font-family:inherit; font-size:0.9rem; resize:none;
+    outline:none;
+  }
+  #panelSugerencia textarea:focus{ border-color: var(--naranja); }
+  #panelSugerencia button{
+    margin-top:10px; background: var(--naranja); color:#fff; border:none;
+    padding:11px 20px; border-radius:20px; font-weight:600; font-family:inherit;
+    cursor:pointer; transition: opacity 0.2s ease;
+  }
+  #panelSugerencia button:disabled{ opacity:0.6; }
+  #graciasSugerencia{
+    display:none; color: var(--ascua); font-weight:600; font-size:0.9rem; margin-top:10px;
+  }
+</style>
+</head>
+<body>
+
+  <div id="splash">
+    <img src="logo-icono.png" alt="Toca y Llama">
+    <div class="marca">Toca y Llama</div>
+  </div>
+
+  <div id="contenido">
+    <div id="estadoCargando">
+      <div class="spinner"></div>
+      <h1 style="margin-top:20px;">Buscando el contacto…</h1>
+      <p>Un momento, por favor.</p>
+    </div>
+
+    <div id="estadoEncontrado" style="display:none;">
+      <div class="icono-estado">📸</div>
+      <h1>Llamando a <span class="nombre-persona" id="nombrePersona"></span></h1>
+      <p>Si no se abre solo, toca el botón.</p>
+      <a href="#" class="btn-llamar" id="botonLlamar">Llamar ahora</a>
+    </div>
+
+    <div id="estadoError" style="display:none;">
+      <div class="icono-estado" style="background:rgba(168,56,40,0.14);">😕</div>
+      <h1>No encontramos este marco</h1>
+      <p>Puede que el código no esté activado todavía. Contacta con Toca y Llama si crees que es un error.</p>
+    </div>
+  </div>
+
+  <div id="cajaSugerencias">
+    <button id="botonSugerencia">💬 ¿Algo que mejorar?</button>
+    <div id="panelSugerencia">
+      <textarea id="textoSugerencia" rows="3" placeholder="Cuéntanos qué mejorarías o qué falla…"></textarea>
+      <button id="enviarSugerencia">Enviar</button>
+      <div id="graciasSugerencia">¡Gracias por tu sugerencia! 🙏</div>
+    </div>
+  </div>
+
+<script>
+  // ---------- Service Worker ----------
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+  }
+
+  // ---------- Config Supabase ----------
+  const SUPABASE_URL = "https://acatpkobvmomosmamqin.supabase.co/rest/v1";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjYXRwa29idm1vbW9zbWFtcWluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MTMxOTksImV4cCI6MjEwMDM4OTE5OX0.NfXVb6jsoPScxfwDM4Kh_x2rggyngvD1LJP8fnrFsmw";
+
+  // ---------- Config sugerencias (Apps Script) ----------
+  const URL_SUGERENCIAS = "https://script.google.com/macros/s/AKfycbwz7e6ro4ygo9X_5gIYs97k280_pnhB3AR7x1UJLFNMEsBFWGpB6VYqfV6T7qxGDZnn/exec";
+
+  // ---------- Buscar el código en Supabase ----------
+  async function buscarMarco(codigo){
+    const resp = await fetch(`${SUPABASE_URL}/marcos?codigo=eq.${encodeURIComponent(codigo)}&select=*`, {
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+      }
+    });
+    const datos = await resp.json();
+    return datos[0] || null;
+  }
+
+  async function iniciar(){
+    const params = new URLSearchParams(window.location.search);
+    const codigo = params.get('codigo');
+
+    const elCargando = document.getElementById('estadoCargando');
+    const elEncontrado = document.getElementById('estadoEncontrado');
+    const elError = document.getElementById('estadoError');
+
+    if (!codigo){
+      elCargando.style.display = 'none';
+      elError.style.display = 'block';
+      return;
+    }
+
+    try {
+      const marco = await buscarMarco(codigo);
+      elCargando.style.display = 'none';
+
+      if (!marco || !marco.numero_llamada){
+        elError.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('nombrePersona').textContent = marco.nombre_persona || '';
+      const enlace = `tel:${marco.numero_llamada}`;
+      document.getElementById('botonLlamar').href = enlace;
+      elEncontrado.style.display = 'block';
+
+      // Intento de llamada automática
+      setTimeout(() => { window.location.href = enlace; }, 300);
+
+    } catch (err) {
+      console.error(err);
+      elCargando.style.display = 'none';
+      elError.style.display = 'block';
+    }
+  }
+
+  // Espera a que el splash termine antes de mostrar contenido con transición limpia
+  setTimeout(iniciar, 200);
+
+  // ---------- Caja de sugerencias ----------
+  const botonSugerencia = document.getElementById('botonSugerencia');
+  const panelSugerencia = document.getElementById('panelSugerencia');
+  const enviarSugerencia = document.getElementById('enviarSugerencia');
+  const textoSugerencia = document.getElementById('textoSugerencia');
+  const graciasSugerencia = document.getElementById('graciasSugerencia');
+
+  botonSugerencia.addEventListener('click', () => {
+    panelSugerencia.style.display = panelSugerencia.style.display === 'block' ? 'none' : 'block';
+  });
+
+  enviarSugerencia.addEventListener('click', async () => {
+    const texto = textoSugerencia.value.trim();
+    if (!texto) return;
+    enviarSugerencia.disabled = true;
+    enviarSugerencia.textContent = 'Enviando…';
+
+    try {
+      await fetch(URL_SUGERENCIAS, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ sugerencia: texto, fecha: new Date().toISOString() })
+      });
+    } catch(err) {
+      console.error('Error al enviar sugerencia:', err);
+    }
+
+    textoSugerencia.style.display = 'none';
+    enviarSugerencia.style.display = 'none';
+    graciasSugerencia.style.display = 'block';
+  });
+</script>
+</body>
+</html>
