@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toca y Llama — Mi cuenta</title>
+<link rel="icon" type="image/png" href="favicon-32x32.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1E1B16">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --naranja: #E07A3F;
+    --ascua: #A83828;
+    --fondo: #1E1B16;
+    --fondo2: #2A2419;
+    --blanco: #FFFDF9;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color: transparent; }
+  html, body{ min-height:100%; }
+  body{
+    font-family:'Poppins', sans-serif;
+    background: radial-gradient(circle at 50% 0%, var(--fondo2), var(--fondo) 65%);
+    color: var(--blanco);
+    display:flex; align-items:flex-start; justify-content:center;
+    padding: 48px 20px;
+  }
+  .contenedor{ width:100%; max-width:420px; }
+  .cabecera{ text-align:center; margin-bottom:28px; }
+  .cabecera img{ width:64px; height:64px; border-radius:16px; box-shadow:0 8px 24px rgba(224,122,63,0.35); margin-bottom:14px; }
+  .cabecera h1{ font-size:1.2rem; font-weight:600; }
+
+  .tarjeta{
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius:20px;
+    padding:26px;
+    margin-bottom:18px;
+  }
+  .tarjeta h2{ font-size:1rem; font-weight:600; margin-bottom:16px; }
+  .tarjeta p.ayuda{ opacity:0.6; font-size:0.85rem; margin-top:-8px; margin-bottom:16px; line-height:1.4; }
+
+  label{ display:block; font-size:0.82rem; opacity:0.7; margin-bottom:6px; }
+  input{
+    width:100%; background: rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.14);
+    color: var(--blanco);
+    border-radius:12px; padding:12px 14px;
+    font-family:inherit; font-size:0.95rem;
+    margin-bottom:14px; outline:none;
+  }
+  input:focus{ border-color: var(--naranja); }
+
+  .btn{
+    width:100%;
+    background: linear-gradient(135deg, var(--naranja), var(--ascua));
+    color:#fff; border:none; border-radius:14px;
+    padding:13px; font-weight:600; font-size:0.95rem;
+    cursor:pointer; font-family:inherit;
+    transition: opacity 0.2s ease;
+  }
+  .btn:disabled{ opacity:0.5; }
+  .btn-secundario{
+    background:none; border:1px solid rgba(255,255,255,0.18);
+    color: var(--blanco); margin-top:10px;
+  }
+
+  .tabs{ display:flex; gap:8px; margin-bottom:20px; }
+  .tab{
+    flex:1; text-align:center; padding:10px; border-radius:12px;
+    background: rgba(255,255,255,0.05); cursor:pointer; font-size:0.88rem; font-weight:500;
+    opacity:0.6; transition: all 0.2s ease;
+  }
+  .tab.activo{ background: rgba(224,122,63,0.18); color: var(--naranja); opacity:1; }
+
+  .mensaje{ font-size:0.85rem; margin-top:10px; line-height:1.4; }
+  .mensaje.error{ color:#ff8a7a; }
+  .mensaje.ok{ color:#8fd19e; }
+
+  .marco-item{
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius:14px; padding:16px; margin-bottom:12px;
+  }
+  .marco-item .cod{ color: var(--naranja); font-weight:600; font-size:0.85rem; margin-bottom:10px; }
+  .marco-item .fila{ display:flex; gap:8px; }
+  .marco-item input{ margin-bottom:0; }
+  .marco-item button{
+    background: var(--naranja); color:#fff; border:none; border-radius:10px;
+    padding:0 16px; font-weight:600; cursor:pointer; font-size:0.85rem;
+  }
+
+  #pantallaCargando{ text-align:center; opacity:0.6; padding:40px 0; }
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+  <div class="cabecera">
+    <img src="logo-icono.png" alt="Toca y Llama">
+    <h1>Mi cuenta — Toca y Llama</h1>
+  </div>
+
+  <div id="pantallaCargando">Cargando…</div>
+
+  <!-- ---------- NO HA INICIADO SESIÓN ---------- -->
+  <div id="zonaAuth" style="display:none;">
+    <div class="tarjeta">
+      <div class="tabs">
+        <div class="tab activo" id="tabEntrar">Entrar</div>
+        <div class="tab" id="tabRegistro">Crear cuenta</div>
+      </div>
+
+      <label for="email">Correo electrónico</label>
+      <input type="email" id="email" placeholder="tucorreo@ejemplo.com">
+
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" placeholder="Mínimo 6 caracteres">
+
+      <button class="btn" id="btnAuth">Entrar</button>
+      <div class="mensaje" id="mensajeAuth"></div>
+    </div>
+  </div>
+
+  <!-- ---------- SESIÓN INICIADA ---------- -->
+  <div id="zonaPanel" style="display:none;">
+    <div class="tarjeta">
+      <h2>Añadir un marco</h2>
+      <p class="ayuda">Escribe el código que venía con tu Toca y Llama para vincularlo a tu cuenta.</p>
+      <label for="codigoReclamar">Código del marco</label>
+      <input type="text" id="codigoReclamar" placeholder="Ej: TYL-0001">
+      <button class="btn" id="btnReclamar">Vincular marco</button>
+      <div class="mensaje" id="mensajeReclamar"></div>
+    </div>
+
+    <div class="tarjeta">
+      <h2>Mis marcos</h2>
+      <div id="listaMarcos"><p class="ayuda">Aún no tienes marcos vinculados.</p></div>
+    </div>
+
+    <button class="btn btn-secundario" id="btnSalir">Cerrar sesión</button>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://acatpkobvmomosmamqin.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjYXRwa29idm1vbW9zbWFtcWluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MTMxOTksImV4cCI6MjEwMDM4OTE5OX0.NfXVb6jsoPScxfwDM4Kh_x2rggyngvD1LJP8fnrFsmw";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const zonaAuth = document.getElementById('zonaAuth');
+  const zonaPanel = document.getElementById('zonaPanel');
+  const pantallaCargando = document.getElementById('pantallaCargando');
+  const tabEntrar = document.getElementById('tabEntrar');
+  const tabRegistro = document.getElementById('tabRegistro');
+  const btnAuth = document.getElementById('btnAuth');
+  const mensajeAuth = document.getElementById('mensajeAuth');
+  let modoRegistro = false;
+
+  tabEntrar.addEventListener('click', () => {
+    modoRegistro = false;
+    tabEntrar.classList.add('activo'); tabRegistro.classList.remove('activo');
+    btnAuth.textContent = 'Entrar';
+    mensajeAuth.textContent = '';
+  });
+  tabRegistro.addEventListener('click', () => {
+    modoRegistro = true;
+    tabRegistro.classList.add('activo'); tabEntrar.classList.remove('activo');
+    btnAuth.textContent = 'Crear cuenta';
+    mensajeAuth.textContent = '';
+  });
+
+  btnAuth.addEventListener('click', async () => {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    if (!email || !password){
+      mensajeAuth.textContent = 'Rellena correo y contraseña.';
+      mensajeAuth.className = 'mensaje error';
+      return;
+    }
+    btnAuth.disabled = true;
+    mensajeAuth.textContent = '';
+
+    const { error } = modoRegistro
+      ? await sb.auth.signUp({ email, password })
+      : await sb.auth.signInWithPassword({ email, password });
+
+    btnAuth.disabled = false;
+
+    if (error){
+      mensajeAuth.textContent = error.message;
+      mensajeAuth.className = 'mensaje error';
+      return;
+    }
+    mostrarPanel();
+  });
+
+  document.getElementById('btnSalir').addEventListener('click', async () => {
+    await sb.auth.signOut();
+    location.reload();
+  });
+
+  document.getElementById('btnReclamar').addEventListener('click', async () => {
+    const codigo = document.getElementById('codigoReclamar').value.trim();
+    const mensajeReclamar = document.getElementById('mensajeReclamar');
+    if (!codigo){ return; }
+
+    const { data: { user } } = await sb.auth.getUser();
+    const { data, error } = await sb
+      .from('marcos')
+      .update({ user_id: user.id })
+      .eq('codigo', codigo)
+      .is('user_id', null)
+      .select();
+
+    if (error){
+      mensajeReclamar.textContent = 'Error: ' + error.message;
+      mensajeReclamar.className = 'mensaje error';
+      return;
+    }
+    if (!data || data.length === 0){
+      mensajeReclamar.textContent = 'Ese código no existe o ya está vinculado a otra cuenta.';
+      mensajeReclamar.className = 'mensaje error';
+      return;
+    }
+    mensajeReclamar.textContent = '¡Marco vinculado! Ya aparece abajo.';
+    mensajeReclamar.className = 'mensaje ok';
+    document.getElementById('codigoReclamar').value = '';
+    cargarMisMarcos();
+  });
+
+  async function cargarMisMarcos(){
+    const lista = document.getElementById('listaMarcos');
+    const { data: { user } } = await sb.auth.getUser();
+    const { data, error } = await sb.from('marcos').select('*').eq('user_id', user.id);
+
+    if (error || !data || data.length === 0){
+      lista.innerHTML = '<p class="ayuda">Aún no tienes marcos vinculados.</p>';
+      return;
+    }
+
+    lista.innerHTML = '';
+    data.forEach(marco => {
+      const div = document.createElement('div');
+      div.className = 'marco-item';
+      div.innerHTML = `
+        <div class="cod">${marco.codigo}</div>
+        <label>Nombre de quien recibe la llamada</label>
+        <div class="fila" style="margin-bottom:10px;">
+          <input type="text" value="${marco.nombre_persona || ''}" class="input-nombre">
+        </div>
+        <label>Número al que llama</label>
+        <div class="fila">
+          <input type="tel" value="${marco.numero_llamada || ''}" class="input-numero">
+          <button class="btn-guardar">Guardar</button>
+        </div>
+        <div class="mensaje mensaje-marco"></div>
+      `;
+      div.querySelector('.btn-guardar').addEventListener('click', async () => {
+        const nuevoNombre = div.querySelector('.input-nombre').value.trim();
+        const nuevoNumero = div.querySelector('.input-numero').value.trim();
+        const msg = div.querySelector('.mensaje-marco');
+        const { error } = await sb.from('marcos')
+          .update({ nombre_persona: nuevoNombre, numero_llamada: nuevoNumero })
+          .eq('id', marco.id);
+        msg.textContent = error ? 'Error al guardar.' : '¡Guardado!';
+        msg.className = 'mensaje ' + (error ? 'error' : 'ok');
+      });
+      lista.appendChild(div);
+    });
+  }
+
+  function mostrarPanel(){
+    zonaAuth.style.display = 'none';
+    zonaPanel.style.display = 'block';
+    cargarMisMarcos();
+  }
+
+  async function iniciar(){
+    const { data: { session } } = await sb.auth.getSession();
+    pantallaCargando.style.display = 'none';
+    if (session){
+      mostrarPanel();
+    } else {
+      zonaAuth.style.display = 'block';
+    }
+  }
+  iniciar();
+</script>
+</body>
+</html>
